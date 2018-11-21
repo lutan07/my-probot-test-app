@@ -1,7 +1,7 @@
 const octokit = require('@octokit/rest')()
 const client = octokit.authenticate({
   type: 'token',
-  token: '6047912fd6ff8ea5a8a07eedd84b13c4bab86ab3'
+  token: process.env.GITHUB_TOKEN
 })
 
 module.exports = app => {
