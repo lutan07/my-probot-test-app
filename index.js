@@ -13,11 +13,15 @@ module.exports = app => {
   //   // return context.github.issues.createComment(issueComment)
   // })
 
-  app.on('*', async context => {
-    // app.log('all from context', context)
-    const result = await octokit.pulls.checkIfMerged({ owner: context.payload.issue.user.login, repo: context.payload.repository.name, number: context.payload.issue.number })
-    app.log('merged', result)
+  app.on('pull_request.open', async context => {
+    app.log('pull request', context)
   })
+
+  // app.on('*', async context => {
+  //   app.log('context', context)
+  //   // const result = await octokit.pulls.get({ owner: context.payload.issue.user.login, repo: context.payload.repository.name, number: context.payload.issue.number })
+  //   // app.log('merged', result)
+  // })
 
   app.on('issues.unlabeled', async context => {
 
