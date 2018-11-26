@@ -29,7 +29,7 @@ module.exports = app => {
 
     // const result = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: issue.number })
     const result = await octokit.issues.listEventsForRepo({ owner: issue.user.login, repo: repository.name })
-    app.log('data', result.data)
+    // app.log('data', result.data)
 
     // get all latest events with the same timestamp
     const latestEvent = result.data[0];
@@ -40,7 +40,7 @@ module.exports = app => {
       return acc
     }, [])
 
-    app.log('sameTimestampEvents', JSON.stringify(sameTimestampEvents, null, 2))
+    // app.log('sameTimestampEvents', JSON.stringify(sameTimestampEvents, null, 2))
 
     for (const event of sameTimestampEvents) {
       if (event.label.name === 'Release QA' && event.issue.labels.find(label => label.name === 'Failed Release QA')) {
@@ -52,19 +52,22 @@ module.exports = app => {
             return label.name
           }
         })
-        app.log('replacements', replacements)
+        // app.log('replacements', replacements)
         const replaceLabelResult = await octokit.issues.replaceLabels({ owner: issue.user.login, repo: repository.name, number: issue.number, labels: replacements })
-        app.log('replaceLabelResult', replaceLabelResult)
+        // app.log('replaceLabelResult', replaceLabelResult)
 
         // Add Remediation Label 
         const addLabelResult = await octokit.issues.addLabels({ owner: issue.user.login, repo: repository.name, number: issue.number, labels: ['Remediation'] })
-        app.log('addLabelResult', addLabelResult)
+        // app.log('addLabelResult', addLabelResult)
+
+        // Open ticket if closed
+        if (event.issue.state === "closed") {
+          const changeIssueState = await octokit.issues.update({ owner: issue.user.login, repo: repository.name, number: issue.number, state: 'open'})
+        }
+        app.log('event logged', event)
       }
     }
     
-    // if(action === "unlabeled" && labelTag === "Release QA") {
-
-    // }
     // app.log("unlabeled issue: ", { action: context.payload.action, label: context.payload.label.name })
   })
 
