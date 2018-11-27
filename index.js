@@ -69,24 +69,31 @@ module.exports = app => {
 
     const { sender, repository, number } = context.payload
     
-
-    // const pullRequestComment = context.issue({ body: 'Selected wrong branch' })
-    // return context.github.issues.createComment(pullRequestComment)
-
     // api call to get data from the pull request being created
     const result = await octokit.pullRequests.get({owner: sender.login, repo: repository.name, number: number})
     app.log('result', result)
 
-    let pullRequestRegex = /(?<=#)(...)/g
+    let pullRequestRegex = /(?<=#)\d+/g
     let branchTicketNumber = result.data.head.label.match(pullRequestRegex)
     app.log('wanted numbers', branchTicketNumber)
 
-    const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: 8 })
-    app.log('ticket return', pullRequestAssociatedTicket.data.labels)
+    // creates a comment if feature branch is doing a PR against release branch
+    for (let number of branchTicketNumber) {
+      const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
 
-    for(let label of pullRequestAssociatedTicket.data.labels) {
-      console.log(label.name)
+      // checks labels of associated ticket to PR
+      for (let label of pullRequestAssociatedTicket.data.labels) {
+        console.log('labels are', label.name)
+        if (label.name === 'Release Branch' && result.data.base.label.includes('master')) {
+          const pullRequestComment = context.issue({ body: 'Selected wrong branch' })
+          console.log('wrong branch')
+          return context.github.issues.createComment(pullRequestComment)
+        }
+      }
+      
+      // console.log('ticket return', pullRequestAssociatedTicket.data.labels)
     }
+
   })
 
 
