@@ -65,35 +65,27 @@ module.exports = app => {
   // grabbing events where pull request has been opened
   app.on('pull_request.opened', async context => {
 
-    app.log('context', context)
-
     const { sender, repository, number } = context.payload
     
     // api call to get data from the pull request being created
     const result = await octokit.pullRequests.get({owner: sender.login, repo: repository.name, number: number})
-    app.log('result', result)
 
     let pullRequestRegex = /(?<=#)\d+/g
     let branchTicketNumber = result.data.head.label.match(pullRequestRegex)
-    app.log('wanted numbers', branchTicketNumber)
 
-    // creates a comment if feature branch is doing a PR against release branch
+    // checks if PR is on the correct branch, returns a comment if not
     for (let number of branchTicketNumber) {
+      // api call to associated ticket
       const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
 
       // checks labels of associated ticket to PR
       for (let label of pullRequestAssociatedTicket.data.labels) {
-        console.log('labels are', label.name)
         if (label.name === 'Release Branch' && result.data.base.label.includes('master')) {
           const pullRequestComment = context.issue({ body: 'Selected wrong branch' })
-          console.log('wrong branch')
           return context.github.issues.createComment(pullRequestComment)
         }
       }
-      
-      // console.log('ticket return', pullRequestAssociatedTicket.data.labels)
     }
-
   })
 
 
