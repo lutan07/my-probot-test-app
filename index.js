@@ -74,18 +74,24 @@ module.exports = app => {
     let branchTicketNumber = result.data.head.label.match(pullRequestRegex)
 
     // checks if PR is on the correct branch, returns a comment if not
-    for (let number of branchTicketNumber) {
-      // api call to associated ticket
-      const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
+    if (branchTicketNumber > 1) {
+      for (let number of branchTicketNumber) {
+        // api call to associated ticket
+        const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
 
-      // checks labels of associated ticket to PR
-      for (let label of pullRequestAssociatedTicket.data.labels) {
-        if (label.name === 'Release Branch' && result.data.base.label.includes('master')) {
-          const pullRequestComment = context.issue({ body: 'Selected wrong branch' })
-          return context.github.issues.createComment(pullRequestComment)
+        // checks labels of associated ticket to PR
+        for (let label of pullRequestAssociatedTicket.data.labels) {
+          if (label.name === 'Release Branch' && result.data.base.label.includes('master')) {
+            const pullRequestComment = context.issue({ body: 'Selected wrong branch' })
+            return context.github.issues.createComment(pullRequestComment)
+          }
         }
       }
     }
+  })
+
+  app.on('pull_request', async context => {
+    console.log(context)
   })
 
 
