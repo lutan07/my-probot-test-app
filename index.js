@@ -55,11 +55,12 @@ module.exports = app => {
 
   // grabbing events where pull request has been opened
   app.on('pull_request.opened', async context => {
+
+    const { sender, repository, number } = context.payload
+
     app.log('pull request', context)
-    const result = octokit.pulls.get({owner: 'lutan07', repo: 'my-probot-test-app', number: 42})
-    .then(result => {
-      app.log("getting my results")
-    })
+    app.log("the sender", context.payload.sender.login)
+    const result = await octokit.pullRequests.get({owner: sender.login, repo: repository.name, number: number})
     app.log('result', result)
   })
 
