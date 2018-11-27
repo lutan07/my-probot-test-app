@@ -8,17 +8,18 @@ module.exports = app => {
   // Your code here
   app.log('Yay, the app was loaded!')
 
+  global.pullRequestHeadTicketNumber;
+  
+  // app.on('*', async context => {
+  //   app.log('all data', context)
+  // })
+
   // app.on('issues.opened', async context => {
   //   const issueComment = context.issue({ body: 'Thanks for opening this issue!' })
   //   // return context.github.issues.createComment(issueComment)
   // })
 
-  app.on('*', async context => {
-    // app.log('all from context', context)
-    const result = await octokit.pulls.checkIfMerged({ owner: context.payload.issue.user.login, repo: context.payload.repository.name, number: context.payload.issue.number })
-    app.log('merged', result)
-  })
-
+  // grabbing all events with labels being removed
   app.on('issues.unlabeled', async context => {
 
     const { repository, issue } = context.payload;
@@ -48,7 +49,10 @@ module.exports = app => {
         const replaceLabelResult = await octokit.issues.replaceLabels({ owner: issue.user.login, repo: repository.name, number: issue.number, labels: replacements })
 
         // Add Remediation Label 
-        const addLabelResult = await octokit.issues.addLabels({ owner: issue.user.login, repo: repository.name, number: issue.number, labels: ['Remediation'] })
+        const addLabelResult = await octokit.issues.addLabels({ owner: issue.user.login, repo: repository.name, number: issue.number, labels: ['Remediation', 'Release Branch'] })
+
+        // Remove Failed Release QA Label
+        const removeLabelResult = await octokit.issues.removeLabel({owner: issue.user.login , repo: repository.name, number: issue.number , name: ['Failed Release QA']})
 
         // Open ticket if closed
         if (event.issue.state === "closed") {
@@ -57,6 +61,41 @@ module.exports = app => {
       }
     }
   })
+
+  // grabbing events where pull request has been opened
+  app.on('pull_request.opened', async context => {
+
+    app.log('context', context)
+
+    const { sender, repository, number } = context.payload
+    
+    // api call to get data from the pull request being created
+    const result = await octokit.pullRequests.get({owner: sender.login, repo: repository.name, number: number})
+    app.log('result', result)
+
+    let pullRequestRegex = /(?<=#)\d+/g
+    let branchTicketNumber = result.data.head.label.match(pullRequestRegex)
+    app.log('wanted numbers', branchTicketNumber)
+
+    // creates a comment if feature branch is doing a PR against release branch
+    for (let number of branchTicketNumber) {
+      const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
+
+      // checks labels of associated ticket to PR
+      for (let label of pullRequestAssociatedTicket.data.labels) {
+        console.log('labels are', label.name)
+        if (label.name === 'Release Branch' && result.data.base.label.includes('master')) {
+          const pullRequestComment = context.issue({ body: 'Selected wrong branch' })
+          console.log('wrong branch')
+          return context.github.issues.createComment(pullRequestComment)
+        }
+      }
+      
+      // console.log('ticket return', pullRequestAssociatedTicket.data.labels)
+    }
+
+  })
+
 
   // For more information on building apps:
   // https://probot.github.io/docs/
