@@ -77,7 +77,7 @@ module.exports = app => {
     const result = await octokit.pullRequests.get({owner: sender.login, repo: repository.name, number: number})
     app.log('result', result)
 
-    let pullRequestRegex = /#(...)/g
+    let pullRequestRegex = /(?<=#)(...)/g
     let branchTicketNumber = result.data.head.label.match(pullRequestRegex)
     app.log('wanted numbers', branchTicketNumber)
 
