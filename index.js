@@ -13,12 +13,7 @@ module.exports = app => {
   //   // return context.github.issues.createComment(issueComment)
   // })
 
-  app.on('*', async context => {
-    // app.log('all from context', context)
-    const result = await octokit.pulls.checkIfMerged({ owner: context.payload.issue.user.login, repo: context.payload.repository.name, number: context.payload.issue.number })
-    app.log('merged', result)
-  })
-
+  // grabbing all events with labels being removed
   app.on('issues.unlabeled', async context => {
 
     const { repository, issue } = context.payload;
@@ -56,6 +51,16 @@ module.exports = app => {
         }
       }
     }
+  })
+
+  // grabbing events where pull request has been opened
+  app.on('pull_request.opened', async context => {
+
+    const { sender, repository, number } = context.payload
+
+    // app.log('pull request', context)
+    const result = await octokit.pullRequests.get({owner: sender.login, repo: repository.name, number: number})
+    app.log('result', result)
   })
 
   // For more information on building apps:
