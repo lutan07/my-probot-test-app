@@ -87,10 +87,35 @@ module.exports = app => {
       }
     }
 
+    // creates PR if regression fix has been merged to release branch
     if (context.payload.pull_request.merged) {
       console.log('result of merged branch', result)
 
-      
+      if (branchTicketNumber.length > 1) {
+        for (let number of branchTicketNumber) {
+          // api call to associated ticket
+          const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
+  
+          // checks labels of associated ticket to PR
+          for (let label of pullRequestAssociatedTicket.data.labels) {
+            if (label.name === 'Release Branch' && !result.data.base.label.includes('master')) {
+              // create PR
+              console.log('creating PR - multiple')
+              const createPR = await octokit.pulls.create({owner: 'lutan07', repo: repository.name, title: result.data.title, head: result.data.head.ref, base: result.data.base.ref, body: 'Branch has been merged into Release', maintainer_can_modify})
+            }
+          }
+        }
+      } else {
+        const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: branchTicketNumber })
+  
+        for (let label of pullRequestAssociatedTicket.data.labels) {
+          if (label.name === 'Release Branch' && !result.data.base.label.includes('master')) {
+            // create PR
+            console.log('creating PR - 1')
+            const createPR = await octokit.pulls.create({owner: 'lutan07', repo: repository.name, title: result.data.title, head: result.data.head.ref, base: result.data.base.ref, body: 'Branch has been merged into Release', maintainer_can_modify})
+          }
+        }
+      }
     }
   })
 
