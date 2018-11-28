@@ -73,11 +73,16 @@ module.exports = app => {
           if (label.name === 'Release Branch' && result.data.base.label.includes('master')) {
             const pullRequestComment = context.issue({ body: 'Selected wrong branch' })
             return context.github.issues.createComment(pullRequestComment)
+          } else {
+            global.globalTicketNumberArray.push(branchTicketNumber)
+            console.log(globalTicketNumberArray)
           }
         }
       }
     } else {
+
       const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: branchTicketNumber })
+
 
       for (let label of pullRequestAssociatedTicket.data.labels) {
         if (label.name === 'Release Branch' && result.data.base.label.includes('master')) {
