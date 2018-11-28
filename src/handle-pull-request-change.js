@@ -51,7 +51,7 @@ async function handlePullRequestChange(context) {
                 if (label.name === 'Release Branch' && !result.data.base.label.includes('master')) {
                     // remove Release Branch label
                     console.log('removing label')
-                    const removeLabelResult = await octokit.issues.removeLabel({owner: 'lutan07' , repo: repository.name, number: branchTicketNumber , name: ['Release Branch']})
+                    const removeLabelResult = await octokit.issues.removeLabel({owner: 'lutan07' , repo: repository.name, number: number, name: ['Release Branch']})
                     // create PR
                     console.log('creating a PR')
                     const createPR = await octokit.pullRequests.create({ owner: 'lutan07', repo: repository.name, title: result.data.title, head: `${result.data.user.login}:${result.data.head.ref}`, base: 'master', body: 'Branch has been merged into Release' })
