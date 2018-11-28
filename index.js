@@ -90,6 +90,7 @@ module.exports = app => {
     if (context.payload.pull_request.merged) {
       console.log('result of merged branch', result)
 
+      
     }
   })
 
