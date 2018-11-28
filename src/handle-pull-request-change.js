@@ -47,23 +47,17 @@ async function handlePullRequestChange(context) {
             const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
             
             // checks labels of associated ticket to PR
-            for (i = 0; i <= pullRequestAssociatedTicket.data.labels.length/2; i++) {
-                console.log('name of labels', pullRequestAssociatedTicket.data.labels.name)
-            }
-        //   for (let label of pullRequestAssociatedTicket.data.labels) {
-        //     console.log('pullRequestTicketLabel', label)
-        //     console.log('pullReqFullTix', pullRequestAssociatedTicket.data.labels)
-        //     console.log('length of PR labels', pullRequestAssociatedTicket.data.labels.length)
-        //     // if (label.name === 'Release Branch' && !result.data.base.label.includes('master')) {
-        //     //     // remove Release Branch label
-        //     //     console.log('removing label')
-        //     //     const removeLabelResult = await octokit.issues.removeLabel({owner: 'lutan07' , repo: repository.name, number: branchTicketNumber , name: ['Release Branch']})
-        //     //     // create PR
-        //     //     console.log('creating a PR')
-        //     //     const createPR = await octokit.pullRequests.create({ owner: 'lutan07', repo: repository.name, title: result.data.title, head: `${result.data.user.login}:${result.data.head.ref}`, base: 'master', body: 'Branch has been merged into Release' })
-        //     //     // return
-        //     // }
-        //   }
+            for (let label of pullRequestAssociatedTicket.data.labels) {
+                if (label.name === 'Release Branch' && !result.data.base.label.includes('master')) {
+                    // remove Release Branch label
+                    console.log('removing label')
+                    const removeLabelResult = await octokit.issues.removeLabel({owner: 'lutan07' , repo: repository.name, number: branchTicketNumber , name: ['Release Branch']})
+                    // create PR
+                    console.log('creating a PR')
+                    const createPR = await octokit.pullRequests.create({ owner: 'lutan07', repo: repository.name, title: result.data.title, head: `${result.data.user.login}:${result.data.head.ref}`, base: 'master', body: 'Branch has been merged into Release' })
+                    break
+                }
+          }
         }
       } else {
         const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: branchTicketNumber })
