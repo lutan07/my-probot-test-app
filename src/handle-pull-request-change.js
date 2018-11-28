@@ -18,10 +18,10 @@ async function handlePullRequestChange(context) {
     if (branchTicketNumber.length > 1 && action === 'opened') {
       for (let number of branchTicketNumber) {
         // api call to associated ticket
-        const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
+        const ticketAssociatedWithPullRequest = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
 
         // checks labels of associated ticket to PR
-        for (let label of pullRequestAssociatedTicket.data.labels) {
+        for (let label of ticketAssociatedWithPullRequest.data.labels) {
           if (label.name === 'Release Branch' && result.data.base.label.includes('master')) {
             const pullRequestComment = context.issue({ body: 'Selected wrong branch' })
             return context.github.issues.createComment(pullRequestComment)
@@ -29,9 +29,9 @@ async function handlePullRequestChange(context) {
         }
       }
     } else if (branchTicketNumber.length == 1 && action === 'opened') {
-      const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: branchTicketNumber })
+      const ticketAssociatedWithPullRequest = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: branchTicketNumber })
 
-      for (let label of pullRequestAssociatedTicket.data.labels) {
+      for (let label of ticketAssociatedWithPullRequest.data.labels) {
         if (label.name === 'Release Branch' && result.data.base.label.includes('master')) {
           const pullRequestComment = context.issue({ body: 'Selected wrong branch' })
           return context.github.issues.createComment(pullRequestComment)
@@ -44,25 +44,29 @@ async function handlePullRequestChange(context) {
       if (branchTicketNumber.length > 1) {
         for (let number of branchTicketNumber) {
             // api call to associated ticket
-            const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
+            const ticketAssociatedWithPullRequest = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
             console.log('ticket number', number)
             // checks labels of associated ticket to PR
-            for (let label of pullRequestAssociatedTicket.data.labels) {
+            for (let label of ticketAssociatedWithPullRequest.data.labels) {
+                const isPRCreated = false
                 if (label.name === 'Release Branch' && !result.data.base.label.includes('master')) {
                     // remove Release Branch label
                     console.log('removing label')
                     const removeLabelResult = await octokit.issues.removeLabel({owner: 'lutan07' , repo: repository.name, number: number, name: ['Release Branch']})
                     // create PR
-                    console.log('creating a PR')
-                    const createPR = await octokit.pullRequests.create({ owner: 'lutan07', repo: repository.name, title: result.data.title, head: `${result.data.user.login}:${result.data.head.ref}`, base: 'master', body: 'Branch has been merged into Release' })
+                    if (!isPRCreated) {
+                        console.log('creating a PR')
+                        const createPR = await octokit.pullRequests.create({ owner: 'lutan07', repo: repository.name, title: result.data.title, head: `${result.data.user.login}:${result.data.head.ref}`, base: 'master', body: 'Branch has been merged into Release' })                       
+                        isPRCreated = true
+                    }
                     break;
                 }
           }
         }
       } else {
-        const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: branchTicketNumber })
+        const ticketAssociatedWithPullRequest = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: branchTicketNumber })
   
-        for (let label of pullRequestAssociatedTicket.data.labels) {
+        for (let label of ticketAssociatedWithPullRequest.data.labels) {
           if (label.name === 'Release Branch' && !result.data.base.label.includes('master')) {
             // remove Release Branch label
             const removeLabelResult = await octokit.issues.removeLabel({owner: 'lutan07' , repo: repository.name, number: branchTicketNumber , name: ['Release Branch']})
