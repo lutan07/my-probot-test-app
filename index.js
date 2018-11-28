@@ -8,6 +8,8 @@ module.exports = app => {
   // Your code here
   app.log('Yay, the app was loaded!')
 
+  global.globalTicketNumberArray = []
+
   // grabbing all events with labels being removed
   app.on('issues.unlabeled', async context => {
 
@@ -73,15 +75,30 @@ module.exports = app => {
           if (label.name === 'Release Branch' && result.data.base.label.includes('master')) {
             const pullRequestComment = context.issue({ body: 'Selected wrong branch' })
             return context.github.issues.createComment(pullRequestComment)
+          } else {
+            global.globalTicketNumberArray.push(branchTicketNumber)
+            console.log(globalTicketNumberArray)
           }
+        }
+      }
+    } else {
+      const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
+
+      for (let label of pullRequestAssociatedTicket.data.labels) {
+        if (label.name === 'Release Branch' && result.data.base.label.includes('master')) {
+          const pullRequestComment = context.issue({ body: 'Selected wrong branch' })
+          return context.github.issues.createComment(pullRequestComment)
+        } else {
+          global.globalTicketNumberArray.push(branchTicketNumber)
+          console.log(globalTicketNumberArray)
         }
       }
     }
 
-    if (context.payload.pull_request.merged) {
-      console.log('result of merged branch', result)
+    // if (context.payload.pull_request.merged) {
+    //   console.log('result of merged branch', result)
 
-    }
+    // }
   })
 
   // // check for closed/merged tickets to create a PR against master branch
