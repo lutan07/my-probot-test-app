@@ -52,6 +52,7 @@ async function handlePullRequestChange(context) {
                 // remove Release Branch label
                 const removeLabelResult = await octokit.issues.removeLabel({owner: 'lutan07' , repo: repository.name, number: branchTicketNumber , name: ['Release Branch']})
                 // create PR
+                console.log('creating a PR')
                 const createPR = await octokit.pullRequests.create({ owner: 'lutan07', repo: repository.name, title: result.data.title, head: `${result.data.user.login}:${result.data.head.ref}`, base: 'master', body: 'Branch has been merged into Release' })
                 // return
             }
