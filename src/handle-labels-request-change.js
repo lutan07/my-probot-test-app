@@ -20,29 +20,29 @@ async function handleLabelsRequestChange(context) {
     }, [])
 
     for (const event of sameTimestampEvents) {
-      if (event.label.name === 'Release QA' && event.issue.labels.find(label => label.name === 'Failed Release QA')) {
-        // Replace Priority Label
-        const replacements = event.issue.labels.map(label => {
-          if (label.name.startsWith('Priority')) {
-            return 'Priority: 1-Critical'
-           } else {
-            return label.name
-          }
-        })
+        if (event.label.name === 'Release QA' && event.issue.labels.find(label => label.name === 'Failed Release QA')) {
+            // Replace Priority Label
+            const replacements = event.issue.labels.map(label => {
+                if (label.name.startsWith('Priority')) {
+                    return 'Priority: 1-Critical'
+                } else {
+                    return label.name
+                }
+            })
 
-        const replaceLabelResult = await octokit.issues.replaceLabels({ owner: issue.user.login, repo: repository.name, number: issue.number, labels: replacements })
+            const replaceLabelResult = await octokit.issues.replaceLabels({ owner: issue.user.login, repo: repository.name, number: issue.number, labels: replacements })
 
-        // Add Remediation Label 
-        const addLabelResult = await octokit.issues.addLabels({ owner: issue.user.login, repo: repository.name, number: issue.number, labels: ['Remediation', 'Release Branch'] })
+            // Add Remediation Label 
+            const addLabelResult = await octokit.issues.addLabels({ owner: issue.user.login, repo: repository.name, number: issue.number, labels: ['Remediation', 'Release Branch'] })
 
-        // Remove Failed Release QA Label
-        const removeLabelResult = await octokit.issues.removeLabel({owner: issue.user.login , repo: repository.name, number: issue.number , name: ['Failed Release QA']})
+            // Remove Failed Release QA Label
+            const removeLabelResult = await octokit.issues.removeLabel({owner: issue.user.login , repo: repository.name, number: issue.number , name: ['Failed Release QA']})
 
-        // Open ticket if closed
-        if (event.issue.state === "closed") {
-          const changeIssueState = await octokit.issues.update({ owner: issue.user.login, repo: repository.name, number: issue.number, state: 'open'})
+            // Open ticket if closed
+            if (event.issue.state === "closed") {
+            const changeIssueState = await octokit.issues.update({ owner: issue.user.login, repo: repository.name, number: issue.number, state: 'open'})
+            }
         }
-      }
     }
 }
 
