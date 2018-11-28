@@ -4,13 +4,15 @@ const client = octokit.authenticate({
   token: process.env.GITHUB_TOKEN
 })
 const handleLabelsRequestChange = require('./src/handle-labels-request-change')
-const handlePullRequestChange = require('./src/handle-pull-request-change')
+const handlePullRequestOpenedChange = require('./src/handle-pull-request-opened-change')
+const handlePullRequestClosedChange = require('./src/handle-pull-request-closed-change')
 
 
 
 function probotGithubApp (app) {
   app.on('issues.unlabeled', handleLabelsRequestChange)
-  app.on(['pull_request.opened', 'pull_request.closed'], handlePullRequestChange)
+  app.on(['pull_request.opened', 'pull_request.closed'], handlePullRequestOpenedChange)
+  app.on('pull_request.closed', handlePullRequestClosedChange)
 }
 
 module.exports = probotGithubApp
