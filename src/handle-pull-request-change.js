@@ -64,6 +64,7 @@ async function handlePullRequestChange(context) {
                 }
             }
         }
+        console.log('is release branch merged', isReleaseBranchMerged)
         // create PR
         if (isReleaseBranchMerged) {
             const createPR = await octokit.pullRequests.create({ owner: 'lutan07', repo: repository.name, title: result.data.title, head: `${result.data.user.login}:${result.data.head.ref}`, base: 'master', body: 'Branch has been merged into Release' })                       
