@@ -123,7 +123,9 @@ module.exports = app => {
           if (label.name === 'Release Branch' && !result.data.base.label.includes('master')) {
             // create PR
             console.log('creating PR - 1')
-            const createPR = await octokit.pullRequests.create({ owner: 'lutan07', repo: repository.name, title: result.data.title, head: `${result.data.user.login}:${result.data.head.ref}`, base: 'master', body: 'Branch has been merged into Release' })
+            // const createPR = await octokit.pullRequests.create({ owner: 'lutan07', repo: repository.name, title: result.data.title, head: `${result.data.user.login}:${result.data.head.ref}`, base: 'master', body: 'Branch has been merged into Release' })
+            const createPR = await octokit.pullRequests.create({ owner: 'lutan07', repo: 'my-probot-test-app', title: 'Test Fix Title', head: 'lutan07:lt-#120', base: 'master', body: 'Branch has been merged into Release' })
+
           }
         }
       }
