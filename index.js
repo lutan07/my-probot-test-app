@@ -101,7 +101,7 @@ module.exports = app => {
             if (label.name === 'Release Branch' && !result.data.base.label.includes('master')) {
               // create PR
               console.log('creating PR - multiple')
-              const createPR = await octokit.pullRequests.create({owner: 'lutan07', repo: repository.name, title: result.data.title, head: result.data.head.ref, base: result.data.base.ref, body: 'Branch has been merged into Release', maintainer_can_modify})
+              const createPR = await octokit.pullRequests.create({owner: 'lutan07', repo: repository.name, title: result.data.title, head: result.data.head.ref, base: result.data.base.ref, body: 'Branch has been merged into Release'})
             }
           }
         }
@@ -112,7 +112,7 @@ module.exports = app => {
           if (label.name === 'Release Branch' && !result.data.base.label.includes('master')) {
             // create PR
             console.log('creating PR - 1')
-            const createPR = await octokit.pullRequests.create({owner: 'lutan07', repo: repository.name, title: result.data.title, head: result.data.head.ref, base: result.data.base.ref, body: 'Branch has been merged into Release', maintainer_can_modify})
+            const createPR = await octokit.pullRequests.create({owner: 'lutan07', repo: repository.name, title: result.data.title, head: result.data.head.ref, base: result.data.base.ref, body: 'Branch has been merged into Release'})
           }
         }
       }
