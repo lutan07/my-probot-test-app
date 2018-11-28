@@ -48,7 +48,7 @@ async function handlePullRequestChange(context) {
             console.log('ticket number', number)
             // checks labels of associated ticket to PR
             for (let label of ticketAssociatedWithPullRequest.data.labels) {
-                const isPRCreated = false
+                let isPRCreated = false
                 if (label.name === 'Release Branch' && !result.data.base.label.includes('master')) {
                     // remove Release Branch label
                     console.log('removing label')
