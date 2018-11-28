@@ -42,7 +42,7 @@ async function handlePullRequestChange(context) {
     // creates PR if regression fix has been merged to release branch
     if (pull_request.merged) {
       if (branchTicketNumber.length > 1) {
-        let isPRCreated = false
+        let isReleaseBranchMerged = false
         for (let number of branchTicketNumber) {
             // api call to associated ticket
             const ticketAssociatedWithPullRequest = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
@@ -53,15 +53,20 @@ async function handlePullRequestChange(context) {
                     // remove Release Branch label
                     console.log('removing label')
                     const removeLabelResult = await octokit.issues.removeLabel({owner: 'lutan07' , repo: repository.name, number: number, name: ['Release Branch']})
-                    // create PR
-                    if (!isPRCreated) {
-                        console.log('creating a PR')
-                        const createPR = await octokit.pullRequests.create({ owner: 'lutan07', repo: repository.name, title: result.data.title, head: `${result.data.user.login}:${result.data.head.ref}`, base: 'master', body: 'Branch has been merged into Release' })                       
-                        isPRCreated = true
-                    }
+                    isReleaseBranchMerged = true
+                    // // create PR
+                    // if (!isPRCreated) {
+                    //     console.log('creating a PR')
+                    //     const createPR = await octokit.pullRequests.create({ owner: 'lutan07', repo: repository.name, title: result.data.title, head: `${result.data.user.login}:${result.data.head.ref}`, base: 'master', body: 'Branch has been merged into Release' })                       
+                    //     isPRCreated = true
+                    // }
                     break;
                 }
-          }
+            }
+        }
+        // create PR
+        if (isReleaseBranchMerged) {
+            const createPR = await octokit.pullRequests.create({ owner: 'lutan07', repo: repository.name, title: result.data.title, head: `${result.data.user.login}:${result.data.head.ref}`, base: 'master', body: 'Branch has been merged into Release' })                       
         }
       } else {
         const ticketAssociatedWithPullRequest = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: branchTicketNumber })
