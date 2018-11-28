@@ -48,16 +48,18 @@ async function handlePullRequestChange(context) {
   
           // checks labels of associated ticket to PR
           for (let label of pullRequestAssociatedTicket.data.labels) {
-            console.log('pullRequestTicket', label)
-            if (label.name === 'Release Branch' && !result.data.base.label.includes('master')) {
-                // remove Release Branch label
-                console.log('removing label')
-                const removeLabelResult = await octokit.issues.removeLabel({owner: 'lutan07' , repo: repository.name, number: branchTicketNumber , name: ['Release Branch']})
-                // create PR
-                console.log('creating a PR')
-                const createPR = await octokit.pullRequests.create({ owner: 'lutan07', repo: repository.name, title: result.data.title, head: `${result.data.user.login}:${result.data.head.ref}`, base: 'master', body: 'Branch has been merged into Release' })
-                // return
-            }
+            console.log('pullRequestTicketLabel', label)
+            console.log('pullReqFullTix', pullRequestAssociatedTicket.data.labels)
+            console.log('length of PR labels', pullRequestAssociatedTicket.data.labels.length)
+            // if (label.name === 'Release Branch' && !result.data.base.label.includes('master')) {
+            //     // remove Release Branch label
+            //     console.log('removing label')
+            //     const removeLabelResult = await octokit.issues.removeLabel({owner: 'lutan07' , repo: repository.name, number: branchTicketNumber , name: ['Release Branch']})
+            //     // create PR
+            //     console.log('creating a PR')
+            //     const createPR = await octokit.pullRequests.create({ owner: 'lutan07', repo: repository.name, title: result.data.title, head: `${result.data.user.login}:${result.data.head.ref}`, base: 'master', body: 'Branch has been merged into Release' })
+            //     // return
+            // }
           }
         }
       } else {
