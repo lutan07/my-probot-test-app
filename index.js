@@ -8,10 +8,7 @@ module.exports = app => {
   // Your code here
   app.log('Yay, the app was loaded!')
 
-  // app.on('issues.opened', async context => {
-  //   const issueComment = context.issue({ body: 'Thanks for opening this issue!' })
-  //   // return context.github.issues.createComment(issueComment)
-  // })
+  global.globalTicketNumberArray = []
 
   // grabbing all events with labels being removed
   app.on('issues.unlabeled', async context => {
@@ -43,7 +40,10 @@ module.exports = app => {
         const replaceLabelResult = await octokit.issues.replaceLabels({ owner: issue.user.login, repo: repository.name, number: issue.number, labels: replacements })
 
         // Add Remediation Label 
-        const addLabelResult = await octokit.issues.addLabels({ owner: issue.user.login, repo: repository.name, number: issue.number, labels: ['Remediation'] })
+        const addLabelResult = await octokit.issues.addLabels({ owner: issue.user.login, repo: repository.name, number: issue.number, labels: ['Remediation', 'Release Branch'] })
+
+        // Remove Failed Release QA Label
+        const removeLabelResult = await octokit.issues.removeLabel({owner: issue.user.login , repo: repository.name, number: issue.number , name: ['Failed Release QA']})
 
         // Open ticket if closed
         if (event.issue.state === "closed") {
@@ -54,14 +54,61 @@ module.exports = app => {
   })
 
   // grabbing events where pull request has been opened
-  app.on('pull_request.opened', async context => {
+  app.on(['pull_request.opened', 'pull_request.closed'], async context => {
 
     const { sender, repository, number } = context.payload
-
-    // app.log('pull request', context)
+    
+    // api call to get data from the pull request being created
     const result = await octokit.pullRequests.get({owner: sender.login, repo: repository.name, number: number})
-    app.log('result', result)
+
+    let pullRequestRegex = /(?<=#)\d+/g
+    let branchTicketNumber = result.data.head.label.match(pullRequestRegex)
+
+    // checks if PR is on the correct branch, returns a comment if not
+    if (branchTicketNumber > 1) {
+      for (let number of branchTicketNumber) {
+        // api call to associated ticket
+        const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
+
+        // checks labels of associated ticket to PR
+        for (let label of pullRequestAssociatedTicket.data.labels) {
+          if (label.name === 'Release Branch' && result.data.base.label.includes('master')) {
+            const pullRequestComment = context.issue({ body: 'Selected wrong branch' })
+            return context.github.issues.createComment(pullRequestComment)
+          } else {
+            global.globalTicketNumberArray.push(branchTicketNumber)
+            console.log(globalTicketNumberArray)
+          }
+        }
+      }
+    } else {
+      const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
+
+      for (let label of pullRequestAssociatedTicket.data.labels) {
+        if (label.name === 'Release Branch' && result.data.base.label.includes('master')) {
+          const pullRequestComment = context.issue({ body: 'Selected wrong branch' })
+          return context.github.issues.createComment(pullRequestComment)
+        } else {
+          global.globalTicketNumberArray.push(branchTicketNumber)
+          console.log(globalTicketNumberArray)
+        }
+      }
+    }
+
+    // if (context.payload.pull_request.merged) {
+    //   console.log('result of merged branch', result)
+
+    // }
   })
+
+  // // check for closed/merged tickets to create a PR against master branch
+  // app.on('pull_request.closed', async context => {
+  //   console.log(context)
+
+  //   if (context.payload.pull_request.merged) {
+  //     const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
+  //   }
+  // })
 
   // For more information on building apps:
   // https://probot.github.io/docs/
