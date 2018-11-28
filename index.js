@@ -8,16 +8,7 @@ module.exports = app => {
   // Your code here
   app.log('Yay, the app was loaded!')
 
-  global.pullRequestHeadTicketNumber;
-  
-  // app.on('*', async context => {
-  //   app.log('all data', context)
-  // })
-
-  // app.on('issues.opened', async context => {
-  //   const issueComment = context.issue({ body: 'Thanks for opening this issue!' })
-  //   // return context.github.issues.createComment(issueComment)
-  // })
+  global.globalTicketNumberArray = []
 
   // grabbing all events with labels being removed
   app.on('issues.unlabeled', async context => {
@@ -63,7 +54,7 @@ module.exports = app => {
   })
 
   // grabbing events where pull request has been opened
-  app.on('pull_request.opened', async context => {
+  app.on(['pull_request.opened', 'pull_request.closed'], async context => {
 
     const { sender, repository, number } = context.payload
     
@@ -84,15 +75,40 @@ module.exports = app => {
           if (label.name === 'Release Branch' && result.data.base.label.includes('master')) {
             const pullRequestComment = context.issue({ body: 'Selected wrong branch' })
             return context.github.issues.createComment(pullRequestComment)
+          } else {
+            global.globalTicketNumberArray.push(branchTicketNumber)
+            console.log(globalTicketNumberArray)
           }
         }
       }
+    } else {
+      const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
+
+      for (let label of pullRequestAssociatedTicket.data.labels) {
+        if (label.name === 'Release Branch' && result.data.base.label.includes('master')) {
+          const pullRequestComment = context.issue({ body: 'Selected wrong branch' })
+          return context.github.issues.createComment(pullRequestComment)
+        } else {
+          global.globalTicketNumberArray.push(branchTicketNumber)
+          console.log(globalTicketNumberArray)
+        }
+      }
     }
+
+    // if (context.payload.pull_request.merged) {
+    //   console.log('result of merged branch', result)
+
+    // }
   })
 
-  app.on('pull_request', async context => {
-    console.log(context)
-  })
+  // // check for closed/merged tickets to create a PR against master branch
+  // app.on('pull_request.closed', async context => {
+  //   console.log(context)
+
+  //   if (context.payload.pull_request.merged) {
+  //     const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
+  //   }
+  // })
 
 
   // For more information on building apps:
