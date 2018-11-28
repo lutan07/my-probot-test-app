@@ -45,7 +45,7 @@ async function handlePullRequestChange(context) {
         for (let number of branchTicketNumber) {
             // api call to associated ticket
             const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
-            
+            console.log('ticket number', number)
             // checks labels of associated ticket to PR
             for (let label of pullRequestAssociatedTicket.data.labels) {
                 if (label.name === 'Release Branch' && !result.data.base.label.includes('master')) {
@@ -55,7 +55,7 @@ async function handlePullRequestChange(context) {
                     // create PR
                     console.log('creating a PR')
                     const createPR = await octokit.pullRequests.create({ owner: 'lutan07', repo: repository.name, title: result.data.title, head: `${result.data.user.login}:${result.data.head.ref}`, base: 'master', body: 'Branch has been merged into Release' })
-                    break
+                    return
                 }
           }
         }
