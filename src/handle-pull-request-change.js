@@ -42,13 +42,13 @@ async function handlePullRequestChange(context) {
     // creates PR if regression fix has been merged to release branch
     if (pull_request.merged) {
       if (branchTicketNumber.length > 1) {
+        let isPRCreated = false
         for (let number of branchTicketNumber) {
             // api call to associated ticket
             const ticketAssociatedWithPullRequest = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
             console.log('ticket number', number)
             // checks labels of associated ticket to PR
             for (let label of ticketAssociatedWithPullRequest.data.labels) {
-                let isPRCreated = false
                 if (label.name === 'Release Branch' && !result.data.base.label.includes('master')) {
                     // remove Release Branch label
                     console.log('removing label')
