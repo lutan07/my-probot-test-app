@@ -59,6 +59,7 @@ module.exports = app => {
     
     // api call to get data from the pull request being created
     const result = await octokit.pullRequests.get({owner: sender.login, repo: repository.name, number: number})
+    console.log('result', result)
 
     // const createPR = await octokit.pullRequests.create({owner: 'lutan07', repo: 'my-probot-test-app', title: 'test title', head: 'lutan07:lt-#109', base: 'master', body: 'Branch has been merged into Release'})
 
@@ -105,7 +106,7 @@ module.exports = app => {
             if (label.name === 'Release Branch' && !result.data.base.label.includes('master')) {
               // create PR
               console.log('creating PR - multiple')
-              const createPR = await octokit.pullRequests.create({ owner: 'lutan07', repo: repository.name, title: result.data.title, head: `$(sender.login):result.data.head.ref1`, base: 'master', body: 'Branch has been merged into Release' })
+              const createPR = await octokit.pullRequests.create({ owner: 'lutan07', repo: repository.name, title: result.data.title, head: `${result.data.user.login}:${result.data.head.ref}`, base: 'master', body: 'Branch has been merged into Release' })
               return
             }
           }
@@ -117,7 +118,7 @@ module.exports = app => {
           if (label.name === 'Release Branch' && !result.data.base.label.includes('master')) {
             // create PR
             console.log('creating PR - 1')
-            const createPR = await octokit.pullRequests.create({ owner: 'lutan07', repo: repository.name, title: result.data.title, head: `${sender.login}:result.data.head.ref`, base: 'master', body: 'Branch has been merged into Release' })
+            const createPR = await octokit.pullRequests.create({ owner: 'lutan07', repo: repository.name, title: result.data.title, head: `${result.data.user.login}:${result.data.head.ref}`, base: 'master', body: 'Branch has been merged into Release' })
           }
         }
       }
