@@ -50,6 +50,7 @@ async function handlePullRequestChange(context) {
           for (let label of pullRequestAssociatedTicket.data.labels) {
             if (label.name === 'Release Branch' && !result.data.base.label.includes('master')) {
                 // remove Release Branch label
+                console.log('removing label')
                 const removeLabelResult = await octokit.issues.removeLabel({owner: 'lutan07' , repo: repository.name, number: branchTicketNumber , name: ['Release Branch']})
                 // create PR
                 console.log('creating a PR')
