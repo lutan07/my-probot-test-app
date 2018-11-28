@@ -8,8 +8,6 @@ module.exports = app => {
   // Your code here
   app.log('Yay, the app was loaded!')
 
-  global.globalTicketNumberArray = []
-
   // grabbing all events with labels being removed
   app.on('issues.unlabeled', async context => {
 
@@ -65,7 +63,7 @@ module.exports = app => {
     let branchTicketNumber = result.data.head.label.match(pullRequestRegex)
 
     // checks if PR is on the correct branch, returns a comment if not
-    if (branchTicketNumber > 1) {
+    if (branchTicketNumber.length > 1) {
       for (let number of branchTicketNumber) {
         // api call to associated ticket
         const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
@@ -82,23 +80,48 @@ module.exports = app => {
         }
       }
     } else {
-      const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
+
+      const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: branchTicketNumber })
+
 
       for (let label of pullRequestAssociatedTicket.data.labels) {
         if (label.name === 'Release Branch' && result.data.base.label.includes('master')) {
           const pullRequestComment = context.issue({ body: 'Selected wrong branch' })
           return context.github.issues.createComment(pullRequestComment)
-        } else {
-          global.globalTicketNumberArray.push(branchTicketNumber)
-          console.log(globalTicketNumberArray)
         }
       }
     }
 
-    // if (context.payload.pull_request.merged) {
-    //   console.log('result of merged branch', result)
+    // creates PR if regression fix has been merged to release branch
+    if (context.payload.pull_request.merged) {
+      console.log('result of merged branch', result)
 
-    // }
+      if (branchTicketNumber.length > 1) {
+        for (let number of branchTicketNumber) {
+          // api call to associated ticket
+          const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
+  
+          // checks labels of associated ticket to PR
+          for (let label of pullRequestAssociatedTicket.data.labels) {
+            if (label.name === 'Release Branch' && !result.data.base.label.includes('master')) {
+              // create PR
+              console.log('creating PR - multiple')
+              const createPR = await octokit.pulls.create({owner: 'lutan07', repo: repository.name, title: result.data.title, head: result.data.head.ref, base: result.data.base.ref, body: 'Branch has been merged into Release', maintainer_can_modify})
+            }
+          }
+        }
+      } else {
+        const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: branchTicketNumber })
+  
+        for (let label of pullRequestAssociatedTicket.data.labels) {
+          if (label.name === 'Release Branch' && !result.data.base.label.includes('master')) {
+            // create PR
+            console.log('creating PR - 1')
+            const createPR = await octokit.pulls.create({owner: 'lutan07', repo: repository.name, title: result.data.title, head: result.data.head.ref, base: result.data.base.ref, body: 'Branch has been merged into Release', maintainer_can_modify})
+          }
+        }
+      }
+    }
   })
 
   // // check for closed/merged tickets to create a PR against master branch
@@ -109,6 +132,7 @@ module.exports = app => {
   //     const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
   //   }
   // })
+
 
   // For more information on building apps:
   // https://probot.github.io/docs/
