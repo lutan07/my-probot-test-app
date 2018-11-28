@@ -43,13 +43,13 @@ async function handlePullRequestChange(context) {
     if (pull_request.merged) {
       if (branchTicketNumber.length > 1) {
         for (let number of branchTicketNumber) {
-          // api call to associated ticket
-          const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
-  
-          // checks labels of associated ticket to PR
-          for (i = 0; i < pullRequestAssociatedTicket.data.labels.length/2; i++) {
-              console.log('run times', i)
-          }
+            // api call to associated ticket
+            const pullRequestAssociatedTicket = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
+            
+            // checks labels of associated ticket to PR
+            for (i = 0; i <= pullRequestAssociatedTicket.data.labels.length/2; i++) {
+                console.log('name of labels', pullRequestAssociatedTicket.data.labels.name)
+            }
         //   for (let label of pullRequestAssociatedTicket.data.labels) {
         //     console.log('pullRequestTicketLabel', label)
         //     console.log('pullReqFullTix', pullRequestAssociatedTicket.data.labels)
