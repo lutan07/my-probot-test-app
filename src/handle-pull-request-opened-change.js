@@ -10,7 +10,7 @@ async function handlePullRequestOpenedChange(context) {
     
     // api call to get data from the pull request being created
     const result = await octokit.pullRequests.get({owner: sender.login, repo: repository.name, number: number})
-    console.log('result', result)
+    
     let pullRequestRegex = /(?<=#)\d+/g
     let branchTicketNumber = result.data.head.label.match(pullRequestRegex)
 
@@ -44,7 +44,6 @@ async function handlePullRequestOpenedChange(context) {
 
     // check if there is a description in the PR
     if (!result.data.body.includes('fixes #') || !result.data.body.includes('test plan')) {
-        console.log('expects description')
         const descComment = context.issue({ body: 'Description incomplete, expects "fixes #<ticket number>" and "test plan".' })
         return context.github.issues.createComment(descComment)
     }
