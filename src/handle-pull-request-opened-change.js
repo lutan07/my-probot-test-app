@@ -22,11 +22,12 @@ async function handlePullRequestOpenedChange(context) {
 
             // checks labels of associated ticket to PR
             for (let label of ticketAssociatedWithPullRequest.data.labels) {
-            if (label.name === 'Release Branch' && result.data.base.label.includes('master')) {
-                const pullRequestComment = context.issue({ body: 'Selected wrong branch' })
-                return context.github.issues.createComment(pullRequestComment)
+                if (label.name === 'Release Branch' && result.data.base.label.includes('master')) {
+                    const pullRequestComment = context.issue({ body: 'Selected wrong branch' })
+                    return context.github.issues.createComment(pullRequestComment)
+                }
             }
-            }
+            console.log('ticket assoc', ticketAssociatedWithPullRequest)
         }
     } else if (branchTicketNumber.length == 1) {
         const ticketAssociatedWithPullRequest = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: branchTicketNumber })
@@ -38,41 +39,6 @@ async function handlePullRequestOpenedChange(context) {
             }
         }
     }
-
-    // // creates PR if regression fix has been merged to release branch
-    // if (pull_request.merged) {
-    //     if (branchTicketNumber.length > 1) {
-    //         let isReleaseBranchMerged = false
-    //         for (let number of branchTicketNumber) {
-    //             // api call to associated ticket
-    //             const ticketAssociatedWithPullRequest = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
-    //             // checks labels of associated ticket to PR
-    //             for (let label of ticketAssociatedWithPullRequest.data.labels) {
-    //                 if (label.name === 'Release Branch' && !result.data.base.label.includes('master')) {
-    //                     // remove Release Branch label
-    //                     const removeLabelResult = await octokit.issues.removeLabel({owner: 'lutan07' , repo: repository.name, number: number, name: ['Release Branch']})
-    //                     isReleaseBranchMerged = true
-    //                     break;
-    //                 }
-    //             }
-    //         }
-    //         // create PR
-    //         if (isReleaseBranchMerged) {
-    //             const createPR = await octokit.pullRequests.create({ owner: 'lutan07', repo: repository.name, title: result.data.title, head: `${result.data.user.login}:${result.data.head.ref}`, base: 'master', body: 'Branch has been merged into Release' })                       
-    //         }
-    //     } else {
-    //         const ticketAssociatedWithPullRequest = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: branchTicketNumber })
-  
-    //         for (let label of ticketAssociatedWithPullRequest.data.labels) {
-    //             if (label.name === 'Release Branch' && !result.data.base.label.includes('master')) {
-    //                 // remove Release Branch label
-    //                 const removeLabelResult = await octokit.issues.removeLabel({owner: 'lutan07' , repo: repository.name, number: branchTicketNumber , name: ['Release Branch']})
-    //                 // create PR
-    //                 const createPR = await octokit.pullRequests.create({ owner: 'lutan07', repo: repository.name, title: result.data.title, head: `${result.data.user.login}:${result.data.head.ref}`, base: 'master', body: 'Branch has been merged into Release' })
-    //             }
-    //         }
-    //     }
-    // }
 }
 
 module.exports = handlePullRequestOpenedChange
