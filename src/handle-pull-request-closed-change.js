@@ -10,7 +10,6 @@ async function handlePullRequestClosedChange(context) {
     
     // api call to get data from the pull request being created
     const result = await octokit.pullRequests.get({owner: sender.login, repo: repository.name, number: number})
-    console.log('result from closed', result.data.body)
 
     let pullRequestRegex = /(?<=#)\d+/g
     let branchTicketNumber = result.data.head.label.match(pullRequestRegex)
