@@ -10,12 +10,15 @@ async function handlePullRequestOpenedChange(context) {
     
     // api call to get data from the pull request being created
     const result = await octokit.pullRequests.get({owner: sender.login, repo: repository.name, number: number})
-
+    console.log('result', result)
     let pullRequestRegex = /(?<=#)\d+/g
     let branchTicketNumber = result.data.head.label.match(pullRequestRegex)
 
-    // checks if PR is on the correct branch, returns a comment if not
-    if (branchTicketNumber.length > 1) {
+    if (!branchTicketNumber) {
+        const comment = context.issue({ body: 'Branch needs to be named properly' })
+        return context.github.issues.createComment(comment)
+    } else if (branchTicketNumber.length > 1) {
+        // checks if PR is on the correct branch, returns a comment if not
         for (let number of branchTicketNumber) {
             // api call to associated ticket
             const ticketAssociatedWithPullRequest = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
@@ -27,7 +30,6 @@ async function handlePullRequestOpenedChange(context) {
                     return context.github.issues.createComment(pullRequestComment)
                 }
             }
-            console.log('ticket assoc', ticketAssociatedWithPullRequest)
         }
     } else if (branchTicketNumber.length == 1) {
         const ticketAssociatedWithPullRequest = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: branchTicketNumber })
@@ -38,6 +40,13 @@ async function handlePullRequestOpenedChange(context) {
             return context.github.issues.createComment(pullRequestComment)
             }
         }
+    }
+
+    // check if there is a description in the PR
+    if (!result.data.body.includes('fixes #') || !result.data.body.includes('test plan')) {
+        console.log('expects description')
+        const descComment = context.issue({ body: 'Description incomplete, expects "fixes #<ticket number>" and "test plan".' })
+        return context.github.issues.createComment(descComment)
     }
 }
 
