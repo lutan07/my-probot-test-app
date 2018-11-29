@@ -43,7 +43,7 @@ async function handlePullRequestOpenedChange(context) {
     }
 
     // check if there is a description in the PR
-    if (!result.data.body.includes('fixes #') || !result.data.body.includes('test plan')) {
+    if (!result.data.body.toLowerCase().includes('fixes #') || !result.data.body.toLowerCase().includes('test plan')) {
         const descComment = context.issue({ body: 'Description incomplete, expects "fixes #<ticket number>" and "test plan".' })
         return context.github.issues.createComment(descComment)
     }
