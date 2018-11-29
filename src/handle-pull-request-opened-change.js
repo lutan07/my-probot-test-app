@@ -70,7 +70,6 @@ async function handlePullRequestOpenedChange(context) {
         report.messages.push({ error: 'Description incomplete, expects "fixes #<ticket number>" and "test plan".' })
     }
 
-    console.log('errors', report.messages)
     // Final status
     await repos.createStatus({
         ...statusInfo,
@@ -92,43 +91,11 @@ async function handlePullRequestOpenedChange(context) {
             await issues.createComment({ ...pull, body: message })
         }
     } else {
-        // deletes previous comments if no errors found
-        await issues.deleteComment({ ...pull, comment_id: comments.id})
+        if (comment) {
+            // deletes previous comments if no errors found
+            await issues.deleteComment({ ...pull, comment_id: comments.id})
+        }
     }
-
-    // if (!branchTicketNumber) {
-    //     const comment = context.issue({ body: 'Branch needs to be named properly' })
-    //     return context.github.issues.createComment(comment)
-    // } else if (branchTicketNumber.length > 1) {
-    //     // checks if PR is on the correct branch, returns a comment if not
-    //     for (let number of branchTicketNumber) {
-    //         // api call to associated ticket
-    //         const ticketAssociatedWithPullRequest = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
-
-    //         // checks labels of associated ticket to PR
-    //         for (let label of ticketAssociatedWithPullRequest.data.labels) {
-    //             if (label.name === 'Release Branch' && result.data.base.label.includes('master')) {
-    //                 const pullRequestComment = context.issue({ body: 'Selected wrong branch' })
-    //                 return context.github.issues.createComment(pullRequestComment)
-    //             }
-    //         }
-    //     }
-    // } else if (branchTicketNumber.length == 1) {
-    //     const ticketAssociatedWithPullRequest = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: branchTicketNumber })
-
-    //     for (let label of ticketAssociatedWithPullRequest.data.labels) {
-    //         if (label.name === 'Release Branch' && result.data.base.label.includes('master')) {
-    //         const pullRequestComment = context.issue({ body: 'Selected wrong branch' })
-    //         return context.github.issues.createComment(pullRequestComment)
-    //         }
-    //     }
-    // }
-
-    // // check if there is a description in the PR
-    // if (!result.data.body.toLowerCase().includes('fixes #') || !result.data.body.toLowerCase().includes('test plan')) {
-    //     const descComment = context.issue({ body: 'Description incomplete, expects "fixes #<ticket number>" and "test plan".' })
-    //     return context.github.issues.createComment(descComment)
-    // }
 }
 
 module.exports = handlePullRequestOpenedChange
