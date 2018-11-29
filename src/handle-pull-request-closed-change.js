@@ -7,6 +7,7 @@ const client = octokit.authenticate({
 async function handlePullRequestClosedChange(context) {
 
     const { sender, repository, number, pull_request } = context.payload
+    console.log('context results', context)
     
     // api call to get data from the pull request being created
     const result = await octokit.pullRequests.get({owner: sender.login, repo: repository.name, number: number})
