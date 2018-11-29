@@ -10,7 +10,6 @@ function formatMessages(messages) {
 
     messages.forEach(errMess => {
         message += `⚠ ${errMess.error} <br>`
-        console.log('message is', message)
     })
 
     return template.replace("<PLACEHOLDER>", message)
