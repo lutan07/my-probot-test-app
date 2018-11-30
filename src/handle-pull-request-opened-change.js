@@ -7,15 +7,11 @@ const checkComments = require('./check-comments')
 const formatMessages = require('./format-messages')
 
 async function handlePullRequestOpenedChange(context) {
-    // 1. Extract necessary info
+    
     const pull = context.issue()
     const { sha } = context.payload.pull_request.head
     const repo = context.repo()
-
-    // GH API
-    const { paginate, issues, repos, pullRequests } = context.github
-
-    // Hold this PR info
+    const { issues, repos, pullRequests } = context.github
     const statusInfo = { ...repo, sha, context: "Probot" }
 
     // Pending
