@@ -11,6 +11,7 @@ function probotGithubApp (app) {
   app.on('issues.labeled', handleLabelsRequestChange)
   app.on('pull_request.opened', handlePullRequestOpenedChange)
   app.on('pull_request.closed', handlePullRequestClosedChange)
+  app.on('pull_request.edited', handlePullRequestOpenedChange)
 }
 
 module.exports = probotGithubApp

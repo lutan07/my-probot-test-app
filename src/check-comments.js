@@ -1,6 +1,6 @@
 async function checkComments(issues, pull) {
     const comments = await issues.listComments(pull)
-    return (comment = comments.data.find(comment => comment.user.login === 'Probot'))
+    return (comment = comments.data.find(c => { return c.user.login.includes('[bot]') }))
 }
 
 module.exports = checkComments

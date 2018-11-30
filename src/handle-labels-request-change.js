@@ -5,7 +5,7 @@ const client = octokit.authenticate({
 })
 
 async function handleLabelsRequestChange(context) {
-
+    
     const { label, issue, repository } = context.payload
     
     if (label.name === 'Failed Release QA') {
