@@ -7,15 +7,11 @@ const checkComments = require('./check-comments')
 const formatMessages = require('./format-messages')
 
 async function handlePullRequestOpenedChange(context) {
-    // 1. Extract necessary info
+    
     const pull = context.issue()
     const { sha } = context.payload.pull_request.head
     const repo = context.repo()
-
-    // GH API
-    const { paginate, issues, repos, pullRequests } = context.github
-
-    // Hold this PR info
+    const { issues, repos, pullRequests } = context.github
     const statusInfo = { ...repo, sha, context: "Probot" }
 
     // Pending
@@ -83,15 +79,15 @@ async function handlePullRequestOpenedChange(context) {
     // create comment if there are errors
     if (!report.valid) {
         const message = formatMessages(report.messages)
-        if (comment) {
+        if (comments) {
             // edits previous comment
-            await issues.editComment({ ...pull, id: comments.id, body: message })
+            await issues.updateComment({ ...pull, comment_id: comments.id, body: message })
         } else {
             // create new comment
             await issues.createComment({ ...pull, body: message })
         }
     } else {
-        if (comment) {
+        if (comments) {
             // deletes previous comments if no errors found
             await issues.deleteComment({ ...pull, comment_id: comments.id})
         }

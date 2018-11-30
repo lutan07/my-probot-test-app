@@ -8,9 +8,10 @@ const handlePullRequestOpenedChange = require('./src/handle-pull-request-opened-
 const handlePullRequestClosedChange = require('./src/handle-pull-request-closed-change')
 
 function probotGithubApp (app) {
-  app.on('issues.unlabeled', handleLabelsRequestChange)
+  app.on('issues.labeled', handleLabelsRequestChange)
   app.on('pull_request.opened', handlePullRequestOpenedChange)
   app.on('pull_request.closed', handlePullRequestClosedChange)
+  app.on('pull_request.edited', handlePullRequestOpenedChange)
 }
 
 module.exports = probotGithubApp
