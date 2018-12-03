@@ -1,15 +1,9 @@
-const octokit = require('@octokit/rest')()
-const client = octokit.authenticate({
-    type: 'token',
-    token: process.env.GITHUB_TOKEN
-})
-
 async function handlePullRequestClosedChange(context) {
 
     const { sender, repository, number, pull_request } = context.payload
     
     // api call to get data from the pull request being created
-    const result = await octokit.pullRequests.get({owner: sender.login, repo: repository.name, number: number})
+    const result = await context.github.pullRequests.get({owner: sender.login, repo: repository.name, number: number})
     const owner = result.data.head.repo.full_name.split('/', 1).toString()
 
     let pullRequestRegex = /(?<=#)\d+/g
@@ -21,12 +15,12 @@ async function handlePullRequestClosedChange(context) {
             let isReleaseBranchMerged = false
             for (let number of branchTicketNumber) {
                 // api call to associated ticket
-                const ticketAssociatedWithPullRequest = await octokit.issues.get({ owner: owner, repo: repository.name, number: number })
+                const ticketAssociatedWithPullRequest = await context.github.issues.get({ owner: owner, repo: repository.name, number: number })
                 // checks labels of associated ticket to PR
                 for (let label of ticketAssociatedWithPullRequest.data.labels) {
                     if (label.name === 'Release Branch' && !result.data.base.label.includes('master')) {
                         // remove Release Branch label
-                        const removeLabelResult = await octokit.issues.removeLabel({owner: owner , repo: repository.name, number: number, name: ['Release Branch']})
+                        const removeLabelResult = await context.github.issues.removeLabel({owner: owner , repo: repository.name, number: number, name: ['Release Branch']})
                         isReleaseBranchMerged = true
                         break;
                     }
@@ -34,17 +28,17 @@ async function handlePullRequestClosedChange(context) {
             }
             // create PR
             if (isReleaseBranchMerged) {
-                const createPR = await octokit.pullRequests.create({ owner: owner, repo: repository.name, title: result.data.title, head: `${result.data.user.login}:${result.data.head.ref}`, base: 'master', body: result.data.body })                       
+                const createPR = await context.github.pullRequests.create({ owner: owner, repo: repository.name, title: result.data.title, head: `${result.data.user.login}:${result.data.head.ref}`, base: 'master', body: result.data.body })                       
             }
         } else {
-            const ticketAssociatedWithPullRequest = await octokit.issues.get({ owner: owner, repo: repository.name, number: branchTicketNumber })
+            const ticketAssociatedWithPullRequest = await context.github.issues.get({ owner: owner, repo: repository.name, number: branchTicketNumber })
   
             for (let label of ticketAssociatedWithPullRequest.data.labels) {
                 if (label.name === 'Release Branch' && !result.data.base.label.includes('master')) {
                     // remove Release Branch label
-                    const removeLabelResult = await octokit.issues.removeLabel({owner: owner , repo: repository.name, number: branchTicketNumber , name: ['Release Branch']})
+                    const removeLabelResult = await context.github.issues.removeLabel({owner: owner , repo: repository.name, number: branchTicketNumber , name: ['Release Branch']})
                     // create PR
-                    const createPR = await octokit.pullRequests.create({ owner: owner, repo: repository.name, title: result.data.title, head: `${result.data.user.login}:${result.data.head.ref}`, base: 'master', body: result.data.body })
+                    const createPR = await context.github.pullRequests.create({ owner: owner, repo: repository.name, title: result.data.title, head: `${result.data.user.login}:${result.data.head.ref}`, base: 'master', body: result.data.body })
                 }
             }
         }
