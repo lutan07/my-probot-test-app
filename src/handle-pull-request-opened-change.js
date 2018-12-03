@@ -1,8 +1,3 @@
-const octokit = require('@octokit/rest')()
-const client = octokit.authenticate({
-    type: 'token',
-    token: process.env.GITHUB_TOKEN
-})
 const checkComments = require('./check-comments')
 const formatMessages = require('./format-messages')
 
@@ -24,7 +19,7 @@ async function handlePullRequestOpenedChange(context) {
     const { sender, repository } = context.payload
     
     // api call to get data from the pull request being created
-    const result = await octokit.pullRequests.get({owner: sender.login, repo: repository.name, number: pull.number})
+    const result = await context.github.pullRequests.get({owner: sender.login, repo: repository.name, number: pull.number})
     const owner = result.data.head.repo.full_name.split('/', 1).toString()
     
     let pullRequestRegex = /(?<=#)\d+/g
@@ -38,7 +33,7 @@ async function handlePullRequestOpenedChange(context) {
         // checks if PR is on the correct branch, returns a comment if not
         for (let number of branchTicketNumber) {
             // api call to associated ticket
-            const ticketAssociatedWithPullRequest = await octokit.issues.get({ owner: owner, repo: repository.name, number: number })
+            const ticketAssociatedWithPullRequest = await context.github.issues.get({ owner: owner, repo: repository.name, number: number })
 
             // checks labels of associated ticket to PR
             for (let label of ticketAssociatedWithPullRequest.data.labels) {
@@ -51,7 +46,7 @@ async function handlePullRequestOpenedChange(context) {
             report.messages.push({ error: 'Selected wrong branch' })
         }
     } else if (branchTicketNumber.length == 1) {
-        const ticketAssociatedWithPullRequest = await octokit.issues.get({ owner: owner, repo: repository.name, number: branchTicketNumber })
+        const ticketAssociatedWithPullRequest = await context.github.issues.get({ owner: owner, repo: repository.name, number: branchTicketNumber })
 
         for (let label of ticketAssociatedWithPullRequest.data.labels) {
             if (label.name === 'Release Branch' && result.data.base.label.includes('master')) {
