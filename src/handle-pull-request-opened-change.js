@@ -1,13 +1,7 @@
-const octokit = require('@octokit/rest')()
-const client = octokit.authenticate({
-    type: 'token',
-    token: process.env.GITHUB_TOKEN
-})
 const checkComments = require('./check-comments')
 const formatMessages = require('./format-messages')
 
 async function handlePullRequestOpenedChange(context) {
-    
     const pull = context.issue()
     const { sha } = context.payload.pull_request.head
     const repo = context.repo()
@@ -20,11 +14,11 @@ async function handlePullRequestOpenedChange(context) {
         state: "pending",
         description: "Waiting for the status to be reported"
     })
-
-    const { sender, repository } = context.payload
-    
+    console.log('hello')
+    const { repository, pull_request } = context.payload
+    const owner = pull_request.head.repo.full_name.split('/', 1).toString()
     // api call to get data from the pull request being created
-    const result = await octokit.pullRequests.get({owner: sender.login, repo: repository.name, number: pull.number})
+    const result = await pullRequests.get({owner: owner, repo: repository.name, number: pull.number})
     
     let pullRequestRegex = /(?<=#)\d+/g
     let branchTicketNumber = result.data.head.label.match(pullRequestRegex)
@@ -37,7 +31,7 @@ async function handlePullRequestOpenedChange(context) {
         // checks if PR is on the correct branch, returns a comment if not
         for (let number of branchTicketNumber) {
             // api call to associated ticket
-            const ticketAssociatedWithPullRequest = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: number })
+            const ticketAssociatedWithPullRequest = await issues.get({ owner: owner, repo: repository.name, number: number })
 
             // checks labels of associated ticket to PR
             for (let label of ticketAssociatedWithPullRequest.data.labels) {
@@ -50,7 +44,7 @@ async function handlePullRequestOpenedChange(context) {
             report.messages.push({ error: 'Selected wrong branch' })
         }
     } else if (branchTicketNumber.length == 1) {
-        const ticketAssociatedWithPullRequest = await octokit.issues.get({ owner: 'lutan07', repo: repository.name, number: branchTicketNumber })
+        const ticketAssociatedWithPullRequest = await issues.get({ owner: owner, repo: repository.name, number: branchTicketNumber })
 
         for (let label of ticketAssociatedWithPullRequest.data.labels) {
             if (label.name === 'Release Branch' && result.data.base.label.includes('master')) {
