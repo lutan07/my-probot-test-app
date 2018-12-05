@@ -14,7 +14,7 @@ async function handlePullRequestOpenedChange(context) {
         state: "pending",
         description: "Waiting for the status to be reported"
     })
-
+    console.log('hello')
     const { repository, pull_request } = context.payload
     const owner = pull_request.head.repo.full_name.split('/', 1).toString()
     // api call to get data from the pull request being created
